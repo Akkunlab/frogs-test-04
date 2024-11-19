@@ -4,7 +4,24 @@ import UserSearch from './components/UserSearch';
 import LetterList from './components/LetterList';
 import LetterEditor from './components/LetterEditor';
 import Notifications from './components/Notifications';
-import type { Letter } from './types';
+import type { Letter, User } from './types';
+
+const SAMPLE_USERS: User[] = [
+  {
+    id: 'user1',
+    name: 'Alice Johnson',
+    photo: 'https://via.placeholder.com/50',
+    language: 'English',
+    interests: ['Music', 'Art'],
+  },
+  {
+    id: 'user2',
+    name: 'Bob Smith',
+    photo: 'https://via.placeholder.com/50',
+    language: 'Japanese',
+    interests: ['Anime', 'Gaming'],
+  },
+];
 
 const SAMPLE_LETTERS: Letter[] = [
   {
@@ -13,7 +30,7 @@ const SAMPLE_LETTERS: Letter[] = [
     receiverId: 'user2',
     content: 'Hello from Japan!',
     sentAt: new Date(),
-    isRead: false
+    isRead: false,
   },
   {
     id: '2',
@@ -21,8 +38,8 @@ const SAMPLE_LETTERS: Letter[] = [
     receiverId: 'user2',
     content: 'Greetings from France!',
     sentAt: new Date(Date.now() - 86400000),
-    isRead: true
-  }
+    isRead: true,
+  },
 ];
 
 function App() {
@@ -32,32 +49,45 @@ function App() {
       id: '1',
       type: 'received',
       message: 'You have received a new letter!',
-      timestamp: new Date()
-    }
+      timestamp: new Date(),
+    },
   ]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const handleSearch = (filters: unknown) => {
     console.log('Searching with filters:', filters);
   };
 
+  const handleUserClick = (user: User) => {
+    setSelectedUser(user);
+  };
+
   const handleLetterClick = (letter: Letter) => {
     if (!letter.isRead) {
-      setNotifications(prev => [...prev, {
-        id: Date.now().toString(),
-        type: 'read',
-        message: 'Letter marked as read',
-        timestamp: new Date()
-      }]);
+      setNotifications((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          type: 'read',
+          message: 'Letter marked as read',
+          timestamp: new Date(),
+        },
+      ]);
     }
   };
 
   const handleSendLetter = (content: string) => {
-    setNotifications(prev => [...prev, {
-      id: Date.now().toString(),
-      type: 'sent',
-      message: `Letter sent successfully: ${content}`,
-      timestamp: new Date()
-    }]);
+    if (selectedUser) {
+      setNotifications((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          type: 'sent',
+          message: `Letter sent to ${selectedUser.name}: ${content}`,
+          timestamp: new Date(),
+        },
+      ]);
+    }
   };
 
   return (
@@ -74,11 +104,18 @@ function App() {
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <UserSearch onSearch={handleSearch} />
+            <UserSearch
+              onSearch={handleSearch}
+              users={SAMPLE_USERS}
+              onUserClick={handleUserClick}
+            />
             <LetterList letters={letters} onLetterClick={handleLetterClick} />
           </div>
           <div>
-            <LetterEditor onSend={handleSendLetter} />
+            <LetterEditor
+              onSend={handleSendLetter}
+              selectedUser={selectedUser}
+            />
           </div>
         </div>
       </main>

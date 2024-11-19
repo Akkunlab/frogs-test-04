@@ -1,10 +1,9 @@
 export interface User {
   id: string;
   name: string;
-  country: string;
-  languages: string[];
+  photo: string;
+  language: string;
   interests: string[];
-  avatar: string;
 }
 
 export interface Letter {

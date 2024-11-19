@@ -1,41 +1,22 @@
 import { useState } from 'react';
-import { Send, MessageSquare, Languages } from 'lucide-react';
-import type { Comment, User } from '../types';
-import TranslationDropdown from './TranslationDropdown';
+import { Send } from 'lucide-react';
+import type { User } from '../types';
 
 interface LetterEditorProps {
   onSend: (content: string) => void;
-  onComment?: (comment: Omit<Comment, 'id' | 'userId' | 'createdAt'>) => void;
+  setSelectedUser: (user: User | null) => void; // 宛先リセット用
   selectedUser: User | null;
 }
 
-export default function LetterEditor({ onSend, onComment, selectedUser }: LetterEditorProps) {
+export default function LetterEditor({ onSend, setSelectedUser, selectedUser }: LetterEditorProps) {
   const [content, setContent] = useState('');
-  const [translatedContent, setTranslatedContent] = useState('');
-  const [targetLanguage, setTargetLanguage] = useState('en');
-  const [isTranslating, setIsTranslating] = useState(false);
 
-  const handleTranslate = async () => {
-    if (!content.trim()) return;
-
-    setIsTranslating(true);
-    try {
-      // 実際のアプリケーションではバックエンド翻訳サービスを呼び出します
-      const response = await fetch('/api/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: content,
-          targetLanguage,
-        }),
-      });
-
-      const { translatedText } = await response.json();
-      setTranslatedContent(translatedText);
-    } catch (error) {
-      console.error('Translation failed:', error);
-    } finally {
-      setIsTranslating(false);
+  // 手紙送信処理
+  const handleSend = () => {
+    if (content.trim()) {
+      onSend(content);
+      setContent(''); // 内容をリセット
+      setSelectedUser(null); // 宛先をリセット
     }
   };
 
@@ -45,10 +26,6 @@ export default function LetterEditor({ onSend, onComment, selectedUser }: Letter
         <h2 className="text-2xl font-bold text-gray-800">
           {selectedUser ? `Write to ${selectedUser.name}` : 'Write a Letter'}
         </h2>
-        <TranslationDropdown
-          selectedLanguage={targetLanguage}
-          onLanguageChange={setTargetLanguage}
-        />
       </div>
 
       <div className="space-y-4">
@@ -62,40 +39,9 @@ export default function LetterEditor({ onSend, onComment, selectedUser }: Letter
           />
         </div>
 
-        <button
-          onClick={handleTranslate}
-          disabled={isTranslating || !content.trim()}
-          className="w-full flex items-center justify-center space-x-2 py-2 px-4 border border-indigo-600 text-indigo-600 rounded-md hover:bg-indigo-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Languages className="w-4 h-4" />
-          <span>{isTranslating ? 'Translating...' : 'Translate'}</span>
-        </button>
-
-        {translatedContent && (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Translated Text</label>
-            <textarea
-              value={translatedContent}
-              readOnly
-              className="w-full h-32 p-4 bg-gray-50 border border-gray-300 rounded-lg resize-none"
-            />
-          </div>
-        )}
-
-        <div className="flex justify-between pt-4">
+        <div className="flex justify-end pt-4">
           <button
-            onClick={() => onComment?.({
-              content: 'Please review my letter',
-              type: 'suggestion',
-            })}
-            className="flex items-center space-x-2 text-gray-600 hover:text-indigo-600"
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>Request Review</span>
-          </button>
-
-          <button
-            onClick={() => onSend(content)}
+            onClick={handleSend} // 修正: 送信時にhandleSendを呼び出し
             disabled={!selectedUser} // 宛先がない場合は無効化
             className="bg-indigo-600 text-white py-2 px-6 rounded-md hover:bg-indigo-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >

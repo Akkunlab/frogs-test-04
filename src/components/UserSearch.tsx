@@ -1,20 +1,53 @@
 import { useState } from 'react';
 import { Search, Globe, Heart } from 'lucide-react';
+import { ref, query, orderByChild, equalTo, get } from 'firebase/database';
+import { database } from '../lib/firebase';
 import { User } from '../types';
 
 interface UserSearchProps {
-  onSearch: (filters: { language: string; interest: string }) => void;
   users: User[];
   onUserClick: (user: User) => void;
 }
 
-export default function UserSearch({
-  onSearch,
-  users,
-  onUserClick,
-}: UserSearchProps) {
+export default function UserSearch({ users, onUserClick }: UserSearchProps) {
   const [language, setLanguage] = useState('');
   const [interest, setInterest] = useState('');
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+
+  const onSearch = async (filters: { language: string; interest: string }) => {
+    try {
+      // Firebaseクエリの作成
+      const userRef = ref(database, 'users');
+      let firebaseQuery = query(userRef);
+
+      // 言語でフィルタリング
+      if (filters.language) {
+        firebaseQuery = query(userRef, orderByChild('language'), equalTo(filters.language));
+      }
+
+      // データを取得
+      const snapshot = await get(firebaseQuery);
+
+      if (snapshot.exists()) {
+        const data = Object.values(snapshot.val()) as User[];
+
+        // 興味でさらにフィルタリング
+        const result = filters.interest
+          ? data.filter((user) =>
+              Array.isArray(user.interests) &&
+              user.interests.some((i) => i.toLowerCase().includes(filters.interest.toLowerCase()))
+            )
+          : data;
+
+        setFilteredUsers(result);
+      } else {
+        setFilteredUsers([]);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setFilteredUsers([]);
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
@@ -55,7 +88,7 @@ export default function UserSearch({
       <div className="mt-6">
         <h3 className="text-xl font-bold text-gray-800 mb-4">Users</h3>
         <ul className="space-y-4">
-          {users.map((user) => (
+          {(filteredUsers.length ? filteredUsers : users).map((user) => (
             <li
               key={user.id}
               className="flex items-center space-x-4 bg-gray-100 p-4 rounded-lg cursor-pointer hover:bg-gray-200 transition"

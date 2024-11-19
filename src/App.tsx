@@ -12,10 +12,10 @@ import type { Letter, User, Notification } from './types';
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
-  const [letters] = useState<Letter[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedLetter, setSelectedLetter] = useState<Letter | null>(null); // 選択された手紙
 
   // 初期データをFirebaseから取得
   useEffect(() => {
@@ -59,11 +59,11 @@ function App() {
         sentAt: new Date(),
         isRead: false,
       };
-
+  
       // Firebaseに手紙データを保存
       const lettersRef = ref(database, `letters/${newLetter.id}`);
       await set(lettersRef, newLetter);
-
+  
       setNotifications((prev) => [
         ...prev,
         {
@@ -73,13 +73,17 @@ function App() {
           timestamp: new Date(),
         },
       ]);
-
+  
       // ユーザー間の送信回数を更新
       const userInteractionsRef = ref(database, `interactions/${username}/${selectedUser.id}`);
       const snapshot = await get(userInteractionsRef);
-
+  
       const currentCount = snapshot.exists() ? snapshot.val() : 0;
       await set(userInteractionsRef, currentCount + 1);
+  
+      // 宛先と内容をリセット
+      setSelectedUser(null);
+      setSelectedLetter(null); // 必要ならリセット
     }
   };
 
@@ -118,20 +122,35 @@ function App() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <UserSearch
-              onSearch={() => {}}
               users={users.map((user) => ({
                 ...user,
                 ...getVisibleDetails(user), // 解放された情報をマージ
               }))}
               onUserClick={setSelectedUser}
             />
-            <LetterList letters={letters} onLetterClick={() => {}} />
+            <LetterList
+              currentUserId={username}
+              onLetterClick={(letter) => setSelectedLetter(letter)} // 手紙をクリック
+            />
           </div>
           <div>
-            <LetterEditor
-              onSend={handleSendLetter}
-              selectedUser={selectedUser}
-            />
+            {selectedLetter && (
+              <div className="p-4 border rounded-lg bg-white shadow">
+                <h2 className="text-xl font-bold">手紙の詳細</h2>
+                <p><strong>送信者:</strong> {selectedLetter.senderId}</p>
+                <p><strong>受信者:</strong> {selectedLetter.receiverId}</p>
+                <p><strong>内容:</strong> {selectedLetter.content}</p>
+                <p>
+                  <strong>送信日時:</strong>{' '}
+                  {selectedLetter.sentAt
+                    ? new Date(selectedLetter.sentAt).toLocaleString()
+                    : '日時情報なし'}
+                </p>
+              </div>
+            )}
+            <div className="my-4 border rounded-lg bg-white shadow">
+              <LetterEditor onSend={handleSendLetter} selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
+            </div>
           </div>
         </div>
       </main>

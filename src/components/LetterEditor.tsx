@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Send, MessageSquare, Languages } from 'lucide-react';
-import type { Letter, Comment } from '../types';
+import type { Comment } from '../types';
 import TranslationDropdown from './TranslationDropdown';
 
 interface LetterEditorProps {

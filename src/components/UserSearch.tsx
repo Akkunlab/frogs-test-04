@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Search, Globe, Heart } from 'lucide-react';
-import type { User } from '../types';
 
 interface UserSearchProps {
-  onSearch: (filters: any) => void;
+  onSearch: (filters: { language: string; interest: string }) => void;
 }
 
 export default function UserSearch({ onSearch }: UserSearchProps) {

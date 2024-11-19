@@ -1,10 +1,9 @@
-import React from 'react';
 import { Bell, Mail, MessageSquare } from 'lucide-react';
 
 interface NotificationsProps {
   notifications: {
     id: string;
-    type: 'received' | 'read' | 'comment';
+    type: string;
     message: string;
     timestamp: Date;
   }[];

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { PenTool } from 'lucide-react';
 import UserSearch from './components/UserSearch';
 import LetterList from './components/LetterList';
@@ -36,7 +36,7 @@ function App() {
     }
   ]);
 
-  const handleSearch = (filters: any) => {
+  const handleSearch = (filters: unknown) => {
     console.log('Searching with filters:', filters);
   };
 
@@ -55,7 +55,7 @@ function App() {
     setNotifications(prev => [...prev, {
       id: Date.now().toString(),
       type: 'sent',
-      message: 'Letter sent successfully',
+      message: `Letter sent successfully: ${content}`,
       timestamp: new Date()
     }]);
   };

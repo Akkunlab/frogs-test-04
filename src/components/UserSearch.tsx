@@ -70,7 +70,7 @@ export default function UserSearch({
                 <h4 className="text-lg font-bold text-gray-800">{user.name}</h4>
                 <p className="text-gray-600">Language: {user.language}</p>
                 <p className="text-gray-600">
-                  Interests: {user.interests.join(', ')}
+                  Interests: {Array.isArray(user.interests) ? user.interests.join(', ') : 'No interests provided'}
                 </p>
               </div>
             </li>

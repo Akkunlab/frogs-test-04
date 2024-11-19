@@ -1,4 +1,5 @@
 export interface User {
+  language: ReactNode;
   id: string;
   name: string;
   photo?: string; // 解放される顔写真

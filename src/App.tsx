@@ -5,6 +5,7 @@ import LetterList from './components/LetterList';
 import LetterEditor from './components/LetterEditor';
 import Notifications from './components/Notifications';
 import type { Letter, User } from './types';
+import LetterEvaluation from './components/LetterEvaluation';
 
 const SAMPLE_USERS: User[] = [
   {
@@ -53,6 +54,7 @@ function App() {
     },
   ]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedLetter, setSelectedLetter] = useState<Letter | null>(null);
 
   const handleSearch = (filters: unknown) => {
     console.log('Searching with filters:', filters);
@@ -63,17 +65,7 @@ function App() {
   };
 
   const handleLetterClick = (letter: Letter) => {
-    if (!letter.isRead) {
-      setNotifications((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          type: 'read',
-          message: 'Letter marked as read',
-          timestamp: new Date(),
-        },
-      ]);
-    }
+    setSelectedLetter(letter);
   };
 
   const handleSendLetter = (content: string) => {
@@ -88,6 +80,20 @@ function App() {
         },
       ]);
     }
+  };
+
+  const handleSubmitEvaluation = (evaluation: { intimacy: number; naturalness: number; grammar: number; corrections: string; comments: string }) => {
+    console.log('Evaluation submitted:', evaluation);
+    setNotifications((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        type: 'evaluation',
+        message: 'Evaluation submitted successfully!',
+        timestamp: new Date(),
+      },
+    ]);
+    setSelectedLetter(null); // 閉じる
   };
 
   return (
@@ -119,6 +125,16 @@ function App() {
           </div>
         </div>
       </main>
+
+      {selectedLetter && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+          <LetterEvaluation
+            letter={selectedLetter}
+            onClose={() => setSelectedLetter(null)}
+            onSubmitEvaluation={handleSubmitEvaluation}
+          />
+        </div>
+      )}
 
       <Notifications notifications={notifications} />
     </div>

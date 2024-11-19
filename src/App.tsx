@@ -1,11 +1,18 @@
 import { useState } from 'react';
 import { PenTool } from 'lucide-react';
+import Login from './components/Login';
 import UserSearch from './components/UserSearch';
 import LetterList from './components/LetterList';
 import LetterEditor from './components/LetterEditor';
 import Notifications from './components/Notifications';
 import type { Letter, User } from './types';
-import LetterEvaluation from './components/LetterEvaluation';
+
+interface Notification {
+  id: string;
+  type: 'sent' | 'received' | 'evaluation';
+  message: string;
+  timestamp: Date;
+}
 
 const SAMPLE_USERS: User[] = [
   {
@@ -44,32 +51,28 @@ const SAMPLE_LETTERS: Letter[] = [
 ];
 
 function App() {
-  const [letters] = useState<Letter[]>(SAMPLE_LETTERS);
-  const [notifications, setNotifications] = useState([
-    {
-      id: '1',
-      type: 'received',
-      message: 'You have received a new letter!',
-      timestamp: new Date(),
-    },
-  ]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  const [letters, setLetters] = useState<Letter[]>(SAMPLE_LETTERS);
+  const [notifications, setNotifications] = useState<Notification[]>([]); // 修正: 型注釈を追加
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [selectedLetter, setSelectedLetter] = useState<Letter | null>(null);
 
-  const handleSearch = (filters: unknown) => {
-    console.log('Searching with filters:', filters);
-  };
-
-  const handleUserClick = (user: User) => {
-    setSelectedUser(user);
-  };
-
-  const handleLetterClick = (letter: Letter) => {
-    setSelectedLetter(letter);
+  const handleLogin = (username: string) => {
+    setUsername(username);
+    setIsLoggedIn(true);
   };
 
   const handleSendLetter = (content: string) => {
     if (selectedUser) {
+      const newLetter: Letter = {
+        id: Date.now().toString(),
+        senderId: username,
+        receiverId: selectedUser.id,
+        content,
+        sentAt: new Date(),
+        isRead: false,
+      };
+      setLetters((prevLetters) => [...prevLetters, newLetter]);
       setNotifications((prev) => [
         ...prev,
         {
@@ -82,19 +85,9 @@ function App() {
     }
   };
 
-  const handleSubmitEvaluation = (evaluation: { intimacy: number; naturalness: number; grammar: number; corrections: string; comments: string }) => {
-    console.log('Evaluation submitted:', evaluation);
-    setNotifications((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        type: 'evaluation',
-        message: 'Evaluation submitted successfully!',
-        timestamp: new Date(),
-      },
-    ]);
-    setSelectedLetter(null); // 閉じる
-  };
+  if (!isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -103,6 +96,7 @@ function App() {
           <div className="flex items-center space-x-3">
             <PenTool className="w-8 h-8 text-indigo-600" />
             <h1 className="text-2xl font-bold text-gray-900">PenPal Connect</h1>
+            <p className="text-gray-600">ようこそ, {username}</p>
           </div>
         </div>
       </header>
@@ -111,11 +105,11 @@ function App() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <UserSearch
-              onSearch={handleSearch}
+              onSearch={() => {}}
               users={SAMPLE_USERS}
-              onUserClick={handleUserClick}
+              onUserClick={setSelectedUser}
             />
-            <LetterList letters={letters} onLetterClick={handleLetterClick} />
+            <LetterList letters={letters} onLetterClick={() => {}} />
           </div>
           <div>
             <LetterEditor
@@ -125,16 +119,6 @@ function App() {
           </div>
         </div>
       </main>
-
-      {selectedLetter && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-          <LetterEvaluation
-            letter={selectedLetter}
-            onClose={() => setSelectedLetter(null)}
-            onSubmitEvaluation={handleSubmitEvaluation}
-          />
-        </div>
-      )}
 
       <Notifications notifications={notifications} />
     </div>

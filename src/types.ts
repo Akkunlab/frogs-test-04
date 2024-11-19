@@ -1,9 +1,17 @@
 export interface User {
   id: string;
   name: string;
-  photo: string;
-  language: string;
+  photo?: string; // 解放される顔写真
+  gender?: string; // 解放される性別
   interests: string[];
+  allowDetails: boolean; // 情報を公開するかどうか
+}
+
+export interface Notification {
+  id: string;
+  type: 'sent' | 'received' | 'evaluation';
+  message: string;
+  timestamp: Date;
 }
 
 export interface Letter {

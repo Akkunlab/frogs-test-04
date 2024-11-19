@@ -5,57 +5,32 @@ import UserSearch from './components/UserSearch';
 import LetterList from './components/LetterList';
 import LetterEditor from './components/LetterEditor';
 import Notifications from './components/Notifications';
-import type { Letter, User } from './types';
-
-interface Notification {
-  id: string;
-  type: 'sent' | 'received' | 'evaluation';
-  message: string;
-  timestamp: Date;
-}
+import type { Letter, User, Notification } from './types';
 
 const SAMPLE_USERS: User[] = [
   {
     id: 'user1',
     name: 'Alice Johnson',
     photo: 'https://via.placeholder.com/50',
-    language: 'English',
+    gender: 'Female',
     interests: ['Music', 'Art'],
+    allowDetails: true,
   },
   {
     id: 'user2',
     name: 'Bob Smith',
-    photo: 'https://via.placeholder.com/50',
-    language: 'Japanese',
     interests: ['Anime', 'Gaming'],
-  },
-];
-
-const SAMPLE_LETTERS: Letter[] = [
-  {
-    id: '1',
-    senderId: 'user1',
-    receiverId: 'user2',
-    content: 'Hello from Japan!',
-    sentAt: new Date(),
-    isRead: false,
-  },
-  {
-    id: '2',
-    senderId: 'user3',
-    receiverId: 'user2',
-    content: 'Greetings from France!',
-    sentAt: new Date(Date.now() - 86400000),
-    isRead: true,
+    allowDetails: false, // 情報非公開
   },
 ];
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
-  const [letters, setLetters] = useState<Letter[]>(SAMPLE_LETTERS);
-  const [notifications, setNotifications] = useState<Notification[]>([]); // 修正: 型注釈を追加
+  const [letters, setLetters] = useState<Letter[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userInteractions, setUserInteractions] = useState<Record<string, number>>({}); // 各ユーザーとの手紙送信回数
 
   const handleLogin = (username: string) => {
     setUsername(username);
@@ -82,7 +57,31 @@ function App() {
           timestamp: new Date(),
         },
       ]);
+
+      // 手紙送信回数の更新
+      setUserInteractions((prev) => {
+        const newCount = (prev[selectedUser.id] || 0) + 1;
+        return { ...prev, [selectedUser.id]: newCount };
+      });
     }
+  };
+
+  // 解放される情報を取得
+  const getVisibleDetails = (user: User) => {
+    const sendCount = userInteractions[user.id] || 0;
+
+    // 公開設定が無効なら情報を返さない
+    if (!user.allowDetails) {
+      return {
+        gender: undefined,
+        photo: undefined,
+      };
+    }
+
+    const details: Partial<User> = {};
+    if (sendCount >= 3) details.gender = user.gender; // 性別を解放
+    if (sendCount >= 5) details.photo = user.photo; // 顔写真を解放
+    return details;
   };
 
   if (!isLoggedIn) {
@@ -106,7 +105,10 @@ function App() {
           <div>
             <UserSearch
               onSearch={() => {}}
-              users={SAMPLE_USERS}
+              users={SAMPLE_USERS.map((user) => ({
+                ...user,
+                ...getVisibleDetails(user), // 解放情報をマージ
+              }))}
               onUserClick={setSelectedUser}
             />
             <LetterList letters={letters} onLetterClick={() => {}} />

@@ -99,7 +99,7 @@ export default function UserSearch({ currentUserId, onUserClick }: UserSearchPro
                 onClick={() => onUserClick(user)}
               >
                 <img
-                  src={user.photo || '/default-avatar.png'}
+                  src={user.photo || 'images/avatar.webp'}
                   alt={`${user.name}'s avatar`}
                   className="w-12 h-12 rounded-full"
                 />

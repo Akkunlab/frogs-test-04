@@ -1,35 +1,53 @@
 import { useState } from 'react';
 import { Search, Globe, Heart } from 'lucide-react';
+import { ref, query, orderByChild, equalTo, get } from 'firebase/database';
+import { database } from '../lib/firebase';
 import { User } from '../types';
 
 interface UserSearchProps {
-  users: User[];
-  currentUserId: string; // ログイン中のユーザーID
+  currentUserId: string;
   onUserClick: (user: User) => void;
 }
 
-export default function UserSearch({ users, currentUserId, onUserClick }: UserSearchProps) {
+export default function UserSearch({ currentUserId, onUserClick }: UserSearchProps) {
   const [language, setLanguage] = useState('');
   const [interest, setInterest] = useState('');
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const filterUsers = () => {
-    // 自分自身を除外し、条件に一致するユーザーをフィルタリング
-    const result = users
-      .filter((user) => user.id !== currentUserId) // 自分を除外
-      .filter((user) => {
-        const languageMatch = language
-          ? user.language.toLowerCase().includes(language.toLowerCase())
-          : true;
-        const interestMatch = interest
-          ? user.interests.some((i) =>
-              i.toLowerCase().includes(interest.toLowerCase())
+  const filterUsers = async () => {
+    setLoading(true);
+    const userRef = ref(database, 'users');
+    let firebaseQuery = query(userRef);
+
+    // 言語でフィルタリング
+    if (language) {
+      firebaseQuery = query(userRef, orderByChild('language'), equalTo(language));
+    }
+
+    try {
+      const snapshot = await get(firebaseQuery);
+
+      if (snapshot.exists()) {
+        const data = Object.values(snapshot.val()) as User[];
+        const result = interest
+          ? data.filter(
+              (user) =>
+                user.id !== currentUserId &&
+                user.interests.some((i) => i.toLowerCase().includes(interest.toLowerCase()))
             )
-          : true;
-        return languageMatch && interestMatch;
-      });
+          : data.filter((user) => user.id !== currentUserId);
 
-    setFilteredUsers(result);
+        setFilteredUsers(result);
+      } else {
+        setFilteredUsers([]);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setFilteredUsers([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -70,9 +88,11 @@ export default function UserSearch({ users, currentUserId, onUserClick }: UserSe
 
       <div className="mt-6">
         <h3 className="text-xl font-bold text-gray-800 mb-4">Users</h3>
-        <ul className="space-y-4">
-          {(filteredUsers.length ? filteredUsers : users.filter(user => user.id !== currentUserId)) // 初期表示でも自分を除外
-            .map((user) => (
+        {loading ? (
+          <p className="text-gray-500">Loading...</p>
+        ) : (
+          <ul className="space-y-4">
+            {filteredUsers.map((user) => (
               <li
                 key={user.id}
                 className="flex items-center space-x-4 bg-gray-100 p-4 rounded-lg cursor-pointer hover:bg-gray-200 transition"
@@ -92,7 +112,11 @@ export default function UserSearch({ users, currentUserId, onUserClick }: UserSe
                 </div>
               </li>
             ))}
-        </ul>
+            {filteredUsers.length === 0 && !loading && (
+              <p className="text-gray-500">No users found with the given criteria.</p>
+            )}
+          </ul>
+        )}
       </div>
     </div>
   );

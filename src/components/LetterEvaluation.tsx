@@ -1,15 +1,7 @@
 import { useState } from 'react';
 import { ref, push } from 'firebase/database';
 import { database } from '../lib/firebase';
-import type { Letter } from '../types';
-
-interface Evaluation {
-  intimacy: number;
-  naturalness: number;
-  grammar: number;
-  corrections: string;
-  comments: string;
-}
+import type { Letter, Evaluation } from '../types';
 
 interface LetterEvaluationProps {
   letter: Letter;
@@ -29,23 +21,26 @@ export default function LetterEvaluation({
   const [comments, setComments] = useState('');
 
   const handleSubmit = async () => {
-    const evaluation: Evaluation = {
+    const evaluation = {
+      senderId: letter.receiverId,
+      receiverId: letter.senderId,
       intimacy,
       naturalness,
       grammar,
       corrections,
       comments,
+      sentAt: new Date().toISOString(),
     };
-
-    // Firebaseに評価を保存
-    const evaluationsRef = ref(
-      database,
-      `evaluations/${letter.receiverId}/${letter.id}`
-    );
-    await push(evaluationsRef, evaluation);
-
-    onSubmitEvaluation(evaluation);
-    onClose();
+  
+    const evaluationsRef = ref(database, 'evaluations');
+  
+    try {
+      await push(evaluationsRef, evaluation);
+      onSubmitEvaluation(evaluation);
+      onClose();
+    } catch (error) {
+      console.error('Error saving evaluation:', error);
+    }
   };
 
   return (

@@ -2,10 +2,10 @@ export interface User {
   language: string;
   id: string;
   name: string;
-  photo?: string; // 解放される顔写真
-  gender?: string; // 解放される性別
+  photo?: string;
+  gender?: string;
   interests: string[];
-  allowDetails: boolean; // 情報を公開するかどうか
+  allowDetails: boolean;
 }
 
 export interface Notification {
@@ -24,20 +24,13 @@ export interface Letter {
   isRead: boolean;
 }
 
-export interface Comment {
-  id: string;
-  userId: string;
-  content: string;
-  type: 'correction' | 'suggestion' | 'comment';
-  createdAt: Date;
-}
-
-export interface TranslationRequest {
-  text: string;
-  targetLanguage: string;
-}
-
-export interface TranslationResponse {
-  translatedText: string;
-  sourceLanguage: string;
+export interface Evaluation {
+  senderId: string;
+  receiverId: string;
+  intimacy: number;
+  naturalness: number;
+  grammar: number;
+  corrections: string;
+  comments: string;
+  sentAt: string;
 }

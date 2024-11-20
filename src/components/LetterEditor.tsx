@@ -41,8 +41,8 @@ export default function LetterEditor({ onSend, setSelectedUser, selectedUser }: 
 
         <div className="flex justify-end pt-4">
           <button
-            onClick={handleSend} // 修正: 送信時にhandleSendを呼び出し
-            disabled={!selectedUser} // 宛先がない場合は無効化
+            onClick={handleSend}
+            disabled={!selectedUser}
             className="bg-indigo-600 text-white py-2 px-6 rounded-md hover:bg-indigo-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />

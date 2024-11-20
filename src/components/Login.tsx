@@ -11,7 +11,7 @@ export default function Login({ onLogin }: LoginProps) {
   const [isNewUser, setIsNewUser] = useState(false);
   const [language, setLanguage] = useState('');
   const [interests, setInterests] = useState('');
-  const [allowDetails, setAllowDetails] = useState(true); // allowDetails の初期値
+  const [allowDetails, setAllowDetails] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = async () => {
@@ -25,10 +25,8 @@ export default function Login({ onLogin }: LoginProps) {
     const snapshot = await get(userRef);
 
     if (snapshot.exists()) {
-      // ユーザーが存在する場合はログイン処理を進める
       onLogin(username.trim());
     } else {
-      // ユーザーが存在しない場合、新規登録を促す
       setIsNewUser(true);
     }
   };
@@ -46,14 +44,14 @@ export default function Login({ onLogin }: LoginProps) {
       name: username,
       language,
       interests: interests.split(',').map((interest) => interest.trim()),
-      allowDetails, // ユーザーが選択した値を保存
+      allowDetails,
       gender: null,
       photo: null,
     };
 
     await set(userRef, newUser);
 
-    onLogin(username.trim()); // 登録後にログイン
+    onLogin(username.trim());
   };
 
   return (

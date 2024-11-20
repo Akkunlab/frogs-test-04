@@ -56,10 +56,8 @@ export default function LetterDetailsModal({
         <LetterEvaluation
           letter={letter}
           onClose={() => setIsEvaluationOpen(false)}
-          onSubmitEvaluation={(evaluation) => {
-            // 評価を送信するロジックを追加
-            console.log('Evaluation Submitted:', evaluation);
-            setIsEvaluationOpen(false); // モーダルを閉じる
+          onSubmitEvaluation={() => {
+            setIsEvaluationOpen(false);
           }}
         />
       )}

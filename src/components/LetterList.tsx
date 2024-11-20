@@ -80,7 +80,7 @@ export default function LetterList({ currentUserId }: LetterListProps) {
         {letters.length === 0 && evaluations.length === 0 && (
           <p className="text-gray-500">You have no letters and evaluations at the moment.</p>
         )}
-        {letters.map((letter) => (
+        {[...letters].reverse().map((letter) => (
           <div
             key={letter.id}
             onClick={() => setSelectedLetter(letter)}
@@ -112,7 +112,7 @@ export default function LetterList({ currentUserId }: LetterListProps) {
             </div>
           </div>
         ))}
-        {evaluations.map((evaluation) => (
+        {[...evaluations].reverse().map((evaluation) => (
           <div
             key={evaluation.sentAt}
             className="p-4 rounded-lg bg-green-50 cursor-pointer hover:shadow-md transition-shadow"

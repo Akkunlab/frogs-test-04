@@ -189,15 +189,15 @@ export default function LetterList({ currentUserId }: LetterListProps) {
                   <td className="border border-gray-300 px-4 py-2">{selectedEvaluation.senderId}</td>
                 </tr>
                 <tr>
-                  <td className="border border-gray-300 px-4 py-2">親密度</td>
+                  <td className="border border-gray-300 px-4 py-2">評価者との親密度</td>
                   <td className="border border-gray-300 px-4 py-2">{selectedEvaluation.intimacy} / 5</td>
                 </tr>
                 <tr>
-                  <td className="border border-gray-300 px-4 py-2">自然さ</td>
+                  <td className="border border-gray-300 px-4 py-2">言語の自然さ</td>
                   <td className="border border-gray-300 px-4 py-2">{selectedEvaluation.naturalness} / 5</td>
                 </tr>
                 <tr>
-                  <td className="border border-gray-300 px-4 py-2">文法</td>
+                  <td className="border border-gray-300 px-4 py-2">文法の正確さ</td>
                   <td className="border border-gray-300 px-4 py-2">{selectedEvaluation.grammar} / 5</td>
                 </tr>
                 <tr>

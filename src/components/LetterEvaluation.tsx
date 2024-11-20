@@ -31,9 +31,9 @@ export default function LetterEvaluation({
       comments,
       sentAt: new Date().toISOString(),
     };
-  
+
     const evaluationsRef = ref(database, 'evaluations');
-  
+
     try {
       await push(evaluationsRef, evaluation);
       onSubmitEvaluation(evaluation);
@@ -45,7 +45,10 @@ export default function LetterEvaluation({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
+      <div
+        className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative overflow-y-auto m-4"
+        style={{ maxHeight: '90vh' }}
+      >
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
@@ -58,7 +61,7 @@ export default function LetterEvaluation({
 
         <div className="space-y-4">
           <div>
-            <label className="block mb-2">Intimacy</label>
+            <label className="block mb-2">評価者との親密度</label>
             <input
               type="range"
               min="1"
@@ -71,7 +74,7 @@ export default function LetterEvaluation({
           </div>
 
           <div>
-            <label className="block mb-2">Naturalness</label>
+            <label className="block mb-2">言語の自然さ</label>
             <input
               type="range"
               min="1"
@@ -84,7 +87,7 @@ export default function LetterEvaluation({
           </div>
 
           <div>
-            <label className="block mb-2">Grammar</label>
+            <label className="block mb-2">文法の正確さ</label>
             <input
               type="range"
               min="1"
@@ -97,7 +100,7 @@ export default function LetterEvaluation({
           </div>
 
           <div>
-            <label className="block mb-2">Corrections</label>
+            <label className="block mb-2">修正内容</label>
             <textarea
               value={corrections}
               onChange={(e) => setCorrections(e.target.value)}
@@ -107,7 +110,7 @@ export default function LetterEvaluation({
           </div>
 
           <div>
-            <label className="block mb-2">Comments</label>
+            <label className="block mb-2">コメント</label>
             <textarea
               value={comments}
               onChange={(e) => setComments(e.target.value)}

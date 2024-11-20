@@ -20,13 +20,8 @@ export interface Letter {
   senderId: string;
   receiverId: string;
   content: string;
-  translatedContent?: {
-    text: string;
-    language: string;
-  };
-  sentAt: Date;
+  sentAt: string;
   isRead: boolean;
-  comments?: Comment[];
 }
 
 export interface Comment {

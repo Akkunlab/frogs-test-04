@@ -56,7 +56,7 @@ function App() {
         senderId: username,
         receiverId: selectedUser.id,
         content,
-        sentAt: new Date(),
+        sentAt: new Date().toISOString(),
         isRead: false,
       };
   
@@ -75,7 +75,10 @@ function App() {
       ]);
   
       // ユーザー間の送信回数を更新
-      const userInteractionsRef = ref(database, `interactions/${username}/${selectedUser.id}`);
+      const userInteractionsRef = ref(
+        database,
+        `interactions/${username}/${selectedUser.id}`
+      );
       const snapshot = await get(userInteractionsRef);
   
       const currentCount = snapshot.exists() ? snapshot.val() : 0;

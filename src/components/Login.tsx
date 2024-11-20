@@ -57,7 +57,7 @@ export default function Login({ onLogin }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 m-4">
       <div className="bg-white rounded-lg shadow-md p-6 w-full max-w-md">
         <h1 className="text-2xl font-bold text-gray-800 mb-4 text-center">
           {isNewUser ? '新規登録' : 'ログイン'}

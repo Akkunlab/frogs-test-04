@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ref, set, get } from 'firebase/database';
 import { database } from '../lib/firebase';
+import { LANGUAGES } from '../constants/languages';
 
 interface LoginProps {
   onLogin: (username: string) => void;
@@ -11,6 +12,7 @@ export default function Login({ onLogin }: LoginProps) {
   const [isNewUser, setIsNewUser] = useState(false);
   const [language, setLanguage] = useState('');
   const [interests, setInterests] = useState('');
+  const [gender, setGender] = useState<string | null>(null);
   const [allowDetails, setAllowDetails] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -32,7 +34,7 @@ export default function Login({ onLogin }: LoginProps) {
   };
 
   const handleRegister = async () => {
-    if (!language.trim() || !interests.trim()) {
+    if (!language || !interests.trim() || !gender) {
       setErrorMessage('全ての項目を入力してください。');
       return;
     }
@@ -45,7 +47,7 @@ export default function Login({ onLogin }: LoginProps) {
       language,
       interests: interests.split(',').map((interest) => interest.trim()),
       allowDetails,
-      gender: null,
+      gender,
       photo: null,
     };
 
@@ -88,13 +90,18 @@ export default function Login({ onLogin }: LoginProps) {
               必要な情報を入力してください。
             </p>
             <div className="space-y-4">
-              <input
-                type="text"
+              <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                placeholder="使用する言語 (例: English, 日本語)"
                 className="w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              />
+              >
+                <option value="">言語を選択してください</option>
+                {LANGUAGES.map((lang) => (
+                  <option key={lang} value={lang}>
+                    {lang}
+                  </option>
+                ))}
+              </select>
               <input
                 type="text"
                 value={interests}
@@ -102,6 +109,44 @@ export default function Login({ onLogin }: LoginProps) {
                 placeholder="興味 (カンマ区切り)"
                 className="w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
               />
+              <div className="flex flex-col space-y-2">
+                <label className="text-gray-700">性別</label>
+                <div className="flex space-x-4">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="male"
+                      checked={gender === 'male'}
+                      onChange={() => setGender('male')}
+                      className="w-5 h-5 text-indigo-600 border-gray-300"
+                    />
+                    <span>男性</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="female"
+                      checked={gender === 'female'}
+                      onChange={() => setGender('female')}
+                      className="w-5 h-5 text-indigo-600 border-gray-300"
+                    />
+                    <span>女性</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="gender"
+                      value="other"
+                      checked={gender === 'other'}
+                      onChange={() => setGender('other')}
+                      className="w-5 h-5 text-indigo-600 border-gray-300"
+                    />
+                    <span>その他</span>
+                  </label>
+                </div>
+              </div>
               <div className="flex items-center space-x-2">
                 <label className="text-gray-700">詳細情報を公開する</label>
                 <input

@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Search, Globe, Heart } from 'lucide-react';
+import { Search, Heart, Globe } from 'lucide-react';
+import Select from 'react-select';
 import { ref, query, orderByChild, equalTo, get } from 'firebase/database';
 import { database } from '../lib/firebase';
+import { LANGUAGES } from '../constants/languages';
 import { User } from '../types';
 
 interface UserSearchProps {
@@ -10,7 +12,7 @@ interface UserSearchProps {
 }
 
 export default function UserSearch({ currentUserId, onUserClick }: UserSearchProps) {
-  const [language, setLanguage] = useState('');
+  const [language, setLanguage] = useState<string | null>(null);
   const [interest, setInterest] = useState('');
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,15 +32,34 @@ export default function UserSearch({ currentUserId, onUserClick }: UserSearchPro
 
       if (snapshot.exists()) {
         const data = Object.values(snapshot.val()) as User[];
-        const result = interest
-          ? data.filter(
-              (user) =>
-                user.id !== currentUserId &&
-                user.interests.some((i) => i.toLowerCase().includes(interest.toLowerCase()))
-            )
-          : data.filter((user) => user.id !== currentUserId);
 
-        setFilteredUsers(result);
+        const enrichedUsers = await Promise.all(
+          data.map(async (user) => {
+            if (user.id !== currentUserId) {
+              // メール送信回数を取得
+              const interactionsRef = ref(database, `interactions/${currentUserId}/${user.id}`);
+              const interactionSnapshot = await get(interactionsRef);
+              const sendCount = interactionSnapshot.exists() ? interactionSnapshot.val() : 0;
+
+              // プロフィール公開設定
+              if (sendCount >= 3  && user.allowDetails !== false) {
+                return user;
+              } else {
+                return {
+                  id: user.id,
+                  name: user.name,
+                  language: user.language,
+                };
+              }
+            }
+            return null;
+          })
+        );
+
+        // フィルタリング
+        const result = enrichedUsers.filter((user) => user !== null);
+
+        setFilteredUsers(result as User[]);
       } else {
         setFilteredUsers([]);
       }
@@ -57,12 +78,12 @@ export default function UserSearch({ currentUserId, onUserClick }: UserSearchPro
       <div className="space-y-4">
         <div className="flex items-center space-x-4">
           <Globe className="w-5 h-5 text-indigo-500" />
-          <input
-            type="text"
-            placeholder="Search by language..."
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          <Select
+            options={LANGUAGES.map((lang) => ({ value: lang, label: lang }))}
+            onChange={(selectedOption) => setLanguage(selectedOption?.value || null)}
+            placeholder="Select a language..."
+            isClearable
+            className="w-full"
           />
         </div>
 
@@ -96,7 +117,7 @@ export default function UserSearch({ currentUserId, onUserClick }: UserSearchPro
               <li
                 key={user.id}
                 className="flex items-center space-x-4 bg-gray-100 p-4 rounded-lg cursor-pointer hover:bg-gray-200 transition"
-                onClick={() => onUserClick(user)}
+                onClick={() => onUserClick(user as User)}
               >
                 <img
                   src={user.photo || 'images/avatar.webp'}
@@ -106,9 +127,16 @@ export default function UserSearch({ currentUserId, onUserClick }: UserSearchPro
                 <div>
                   <h4 className="text-lg font-bold text-gray-800">{user.name}</h4>
                   <p className="text-gray-600">Language: {user.language}</p>
-                  <p className="text-gray-600">
-                    Interests: {Array.isArray(user.interests) ? user.interests.join(', ') : 'No interests provided'}
-                  </p>
+                  {user.interests && (
+                    <p className="text-gray-600">
+                      Interests: {Array.isArray(user.interests) ? user.interests.join(', ') : ''}
+                    </p>
+                  )}
+                  {user.gender && (
+                    <p className="text-gray-600">
+                      gender: {user.gender}
+                    </p>
+                  )}
                 </div>
               </li>
             ))}

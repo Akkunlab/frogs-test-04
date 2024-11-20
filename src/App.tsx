@@ -13,20 +13,8 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  // const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedLetter, setSelectedLetter] = useState<Letter | null>(null); // 選択された手紙
-
-  // 初期データをFirebaseから取得
-  // useEffect(() => {
-  //   const usersRef = ref(database, 'users');
-  //   onValue(usersRef, (snapshot) => {
-  //     const data = snapshot.val();
-  //     if (data) {
-  //       setUsers(Object.values(data));
-  //     }
-  //   });
-  // }, []);
 
   // ログイン処理
   const handleLogin = async (username: string) => {
@@ -90,21 +78,6 @@ function App() {
     }
   };
 
-  // ユーザー情報解放ロジック
-  // const getVisibleDetails = async (user: User) => {
-  //   if (!user.allowDetails) return {};
-
-  //   const interactionsRef = ref(database, `interactions/${username}/${user.id}`);
-  //   const snapshot = await get(interactionsRef);
-
-  //   const sendCount = snapshot.exists() ? snapshot.val() : 0;
-  //   const details: Partial<User> = {};
-
-  //   if (sendCount >= 3) details.gender = user.gender; // 性別を解放
-  //   if (sendCount >= 5) details.photo = user.photo; // 顔写真を解放
-  //   return details;
-  // };
-
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;
   }
@@ -125,7 +98,6 @@ function App() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <UserSearch
-              // users={users}
               currentUserId={username}
               onUserClick={setSelectedUser}
             />

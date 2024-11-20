@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { database } from '../lib/firebase';
-import { Mail, CheckCircle, Clock, MessageSquare } from 'lucide-react';
+import { Mail, CheckCircle, Clock } from 'lucide-react';
 import type { Letter } from '../types';
+import LetterDetailsModal from './LetterDetailsModal';
 
 interface LetterListProps {
-  currentUserId: string; // 現在のユーザーID
-  onLetterClick: (letter: Letter) => void; // 手紙クリック時のハンドラー
+  currentUserId: string;
 }
 
-export default function LetterList({ currentUserId, onLetterClick }: LetterListProps) {
+export default function LetterList({ currentUserId }: LetterListProps) {
   const [letters, setLetters] = useState<Letter[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedLetter, setSelectedLetter] = useState<Letter | null>(null);
 
   useEffect(() => {
     const lettersRef = ref(database, 'letters');
@@ -22,7 +23,9 @@ export default function LetterList({ currentUserId, onLetterClick }: LetterListP
         if (snapshot.exists()) {
           const data = Object.values(snapshot.val()) as Letter[];
           // 自分宛の手紙をフィルタリング
-          const filteredLetters = data.filter((letter) => letter.receiverId === currentUserId);
+          const filteredLetters = data.filter(
+            (letter) => letter.receiverId === currentUserId
+          );
           setLetters(filteredLetters);
         } else {
           setLetters([]);
@@ -56,7 +59,7 @@ export default function LetterList({ currentUserId, onLetterClick }: LetterListP
         {letters.map((letter) => (
           <div
             key={letter.id}
-            onClick={() => onLetterClick(letter)}
+            onClick={() => setSelectedLetter(letter)}
             className={`p-4 rounded-lg border ${
               letter.isRead ? 'bg-gray-50' : 'bg-indigo-50'
             } cursor-pointer hover:shadow-md transition-shadow`}
@@ -75,11 +78,6 @@ export default function LetterList({ currentUserId, onLetterClick }: LetterListP
                   <p className="text-sm text-gray-500">
                     {new Date(letter.sentAt).toLocaleDateString()}
                   </p>
-                  <p className="text-sm text-gray-700">
-                    {letter.translatedContent
-                      ? `Translated (${letter.translatedContent.language}): ${letter.translatedContent.text}`
-                      : `Content: ${letter.content}`}
-                  </p>
                 </div>
               </div>
               {letter.isRead ? (
@@ -88,15 +86,15 @@ export default function LetterList({ currentUserId, onLetterClick }: LetterListP
                 <Clock className="w-5 h-5 text-indigo-500" />
               )}
             </div>
-            {letter.comments && letter.comments.length > 0 && (
-              <div className="mt-2 flex items-center space-x-2 text-sm text-gray-600">
-                <MessageSquare className="w-4 h-4" />
-                <span>{letter.comments.length} comments</span>
-              </div>
-            )}
           </div>
         ))}
       </div>
+
+      <LetterDetailsModal
+        letter={selectedLetter}
+        isOpen={!!selectedLetter}
+        onClose={() => setSelectedLetter(null)}
+      />
     </div>
   );
 }

@@ -128,7 +128,6 @@ function App() {
             />
             <LetterList
               currentUserId={username}
-              onLetterClick={(letter) => setSelectedLetter(letter)} // 手紙をクリック
             />
           </div>
           <div>

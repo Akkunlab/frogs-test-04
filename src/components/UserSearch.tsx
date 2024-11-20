@@ -1,52 +1,35 @@
 import { useState } from 'react';
 import { Search, Globe, Heart } from 'lucide-react';
-import { ref, query, orderByChild, equalTo, get } from 'firebase/database';
-import { database } from '../lib/firebase';
 import { User } from '../types';
 
 interface UserSearchProps {
   users: User[];
+  currentUserId: string; // ログイン中のユーザーID
   onUserClick: (user: User) => void;
 }
 
-export default function UserSearch({ users, onUserClick }: UserSearchProps) {
+export default function UserSearch({ users, currentUserId, onUserClick }: UserSearchProps) {
   const [language, setLanguage] = useState('');
   const [interest, setInterest] = useState('');
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 
-  const onSearch = async (filters: { language: string; interest: string }) => {
-    try {
-      // Firebaseクエリの作成
-      const userRef = ref(database, 'users');
-      let firebaseQuery = query(userRef);
-
-      // 言語でフィルタリング
-      if (filters.language) {
-        firebaseQuery = query(userRef, orderByChild('language'), equalTo(filters.language));
-      }
-
-      // データを取得
-      const snapshot = await get(firebaseQuery);
-
-      if (snapshot.exists()) {
-        const data = Object.values(snapshot.val()) as User[];
-
-        // 興味でさらにフィルタリング
-        const result = filters.interest
-          ? data.filter((user) =>
-              Array.isArray(user.interests) &&
-              user.interests.some((i) => i.toLowerCase().includes(filters.interest.toLowerCase()))
+  const filterUsers = () => {
+    // 自分自身を除外し、条件に一致するユーザーをフィルタリング
+    const result = users
+      .filter((user) => user.id !== currentUserId) // 自分を除外
+      .filter((user) => {
+        const languageMatch = language
+          ? user.language.toLowerCase().includes(language.toLowerCase())
+          : true;
+        const interestMatch = interest
+          ? user.interests.some((i) =>
+              i.toLowerCase().includes(interest.toLowerCase())
             )
-          : data;
+          : true;
+        return languageMatch && interestMatch;
+      });
 
-        setFilteredUsers(result);
-      } else {
-        setFilteredUsers([]);
-      }
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      setFilteredUsers([]);
-    }
+    setFilteredUsers(result);
   };
 
   return (
@@ -77,7 +60,7 @@ export default function UserSearch({ users, onUserClick }: UserSearchProps) {
         </div>
 
         <button
-          onClick={() => onSearch({ language, interest })}
+          onClick={filterUsers}
           className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2"
         >
           <Search className="w-4 h-4" />
@@ -88,26 +71,27 @@ export default function UserSearch({ users, onUserClick }: UserSearchProps) {
       <div className="mt-6">
         <h3 className="text-xl font-bold text-gray-800 mb-4">Users</h3>
         <ul className="space-y-4">
-          {(filteredUsers.length ? filteredUsers : users).map((user) => (
-            <li
-              key={user.id}
-              className="flex items-center space-x-4 bg-gray-100 p-4 rounded-lg cursor-pointer hover:bg-gray-200 transition"
-              onClick={() => onUserClick(user)}
-            >
-              <img
-                src={user.photo}
-                alt={`${user.name}'s avatar`}
-                className="w-12 h-12 rounded-full"
-              />
-              <div>
-                <h4 className="text-lg font-bold text-gray-800">{user.name}</h4>
-                <p className="text-gray-600">Language: {user.language}</p>
-                <p className="text-gray-600">
-                  Interests: {Array.isArray(user.interests) ? user.interests.join(', ') : 'No interests provided'}
-                </p>
-              </div>
-            </li>
-          ))}
+          {(filteredUsers.length ? filteredUsers : users.filter(user => user.id !== currentUserId)) // 初期表示でも自分を除外
+            .map((user) => (
+              <li
+                key={user.id}
+                className="flex items-center space-x-4 bg-gray-100 p-4 rounded-lg cursor-pointer hover:bg-gray-200 transition"
+                onClick={() => onUserClick(user)}
+              >
+                <img
+                  src={user.photo || '/default-avatar.png'}
+                  alt={`${user.name}'s avatar`}
+                  className="w-12 h-12 rounded-full"
+                />
+                <div>
+                  <h4 className="text-lg font-bold text-gray-800">{user.name}</h4>
+                  <p className="text-gray-600">Language: {user.language}</p>
+                  <p className="text-gray-600">
+                    Interests: {Array.isArray(user.interests) ? user.interests.join(', ') : 'No interests provided'}
+                  </p>
+                </div>
+              </li>
+            ))}
         </ul>
       </div>
     </div>

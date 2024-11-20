@@ -88,19 +88,19 @@ function App() {
   };
 
   // ユーザー情報解放ロジック
-  const getVisibleDetails = async (user: User) => {
-    if (!user.allowDetails) return {};
+  // const getVisibleDetails = async (user: User) => {
+  //   if (!user.allowDetails) return {};
 
-    const interactionsRef = ref(database, `interactions/${username}/${user.id}`);
-    const snapshot = await get(interactionsRef);
+  //   const interactionsRef = ref(database, `interactions/${username}/${user.id}`);
+  //   const snapshot = await get(interactionsRef);
 
-    const sendCount = snapshot.exists() ? snapshot.val() : 0;
-    const details: Partial<User> = {};
+  //   const sendCount = snapshot.exists() ? snapshot.val() : 0;
+  //   const details: Partial<User> = {};
 
-    if (sendCount >= 3) details.gender = user.gender; // 性別を解放
-    if (sendCount >= 5) details.photo = user.photo; // 顔写真を解放
-    return details;
-  };
+  //   if (sendCount >= 3) details.gender = user.gender; // 性別を解放
+  //   if (sendCount >= 5) details.photo = user.photo; // 顔写真を解放
+  //   return details;
+  // };
 
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;
@@ -122,10 +122,8 @@ function App() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <UserSearch
-              users={users.map((user) => ({
-                ...user,
-                ...getVisibleDetails(user), // 解放された情報をマージ
-              }))}
+              users={users}
+              currentUserId={username}
               onUserClick={setSelectedUser}
             />
             <LetterList
